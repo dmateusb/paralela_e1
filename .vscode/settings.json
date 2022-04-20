@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.erb": "erb",
+    "stdio.h": "c",
+    "stb_image_write.h": "c"
+  }
+}
