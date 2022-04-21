@@ -8,11 +8,12 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
 
-
 unsigned char *img, *gray_img;
 size_t img_size, gray_img_size;
 int channels, gray_channels;
 int width, height, threads;
+char *input_img_name , *output_img_name;
+FILE *outputFile;
 
 void *apply_filter(void *arg){
 
@@ -32,10 +33,11 @@ void *apply_filter(void *arg){
             *(pg + 1) = *(p + 3);
         }
     }
+    return 0;
 }
 
 unsigned char *load_image(){
-    unsigned char *img = stbi_load("1080.jpg", &width, &height, &channels, 0);
+    unsigned char *img = stbi_load(input_img_name, &width, &height, &channels, 0);
     if (img == NULL)
     {
         printf("Error in loading the image\n");
@@ -46,7 +48,7 @@ unsigned char *load_image(){
 }
 
 void write_image(){
-    stbi_write_png("1_gray.png", width, height, gray_channels, gray_img, width * gray_channels);
+    stbi_write_png(output_img_name, width, height, gray_channels, gray_img, width * gray_channels);
     stbi_image_free(img);
     free(gray_img);
 }
@@ -78,8 +80,10 @@ void create_threads(){
 
 int main(int argc, char **argv)
 { 
+    input_img_name = argv[1];
+    output_img_name =argv[2];
     char *end;
-    threads = (int)strtol(argv[1], &end, 10);
+    threads = (int)strtol(argv[3], &end, 10);
     struct timeval tval_before, tval_after, tval_result;
     gettimeofday(&tval_before, NULL);
     img = load_image();
