@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <pthread.h>
+#include <omp.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
@@ -15,9 +15,9 @@ int width, height, threads;
 char *input_img_name , *output_img_name;
 FILE *outputFile;
 
-void *apply_filter(void *arg){
+void *apply_filter(int idThread){
 
-    int threadId = *(int *)arg;
+    int threadId = idThread;
     printf("init p: %p \n", (img + ( (img_size / threads) * threadId )) );
 
     for (unsigned char *p = (img + ( (img_size / threads) * threadId )) ,
@@ -64,6 +64,7 @@ void set_global_variables(){
     }
 }
 
+/*
 void create_threads(){
     int i, *retval, threadId[threads];
     pthread_t thread[threads];
@@ -76,7 +77,7 @@ void create_threads(){
     for(i = 0; i < threads; i++){
         pthread_join(thread[i], (void **)&retval);
     }
-}
+}*/
 
 int main(int argc, char **argv)
 { 
@@ -84,15 +85,21 @@ int main(int argc, char **argv)
     output_img_name =argv[2];
     char *end;
     threads = (int)strtol(argv[3], &end, 10);
+    omp_set_num_threads(threads);
     struct timeval tval_before, tval_after, tval_result;
     gettimeofday(&tval_before, NULL);
     img = load_image();
     set_global_variables();
-    create_threads();
+   // create_threads();
+      #pragma omp parallel
+      {
+        int id =  omp_get_thread_num();
+        printf("%d",id);
+        apply_filter(id);
+      }
     write_image();
     gettimeofday(&tval_after, NULL);
     timersub(&tval_after, &tval_before, &tval_result);
     printf("Time elapsed: %ld.%06ld\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
 }
-
 //gcc -std=c17 -pedantic entrega.c -o entrega -fopenmp -lm -D_DEFAULT_SOURCE
